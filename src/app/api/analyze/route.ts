@@ -14,6 +14,7 @@ export const dynamic = 'force-dynamic';
 
 interface AnalyzeRequest {
     username: string;
+    selectedRepos?: string[]; // User-selected repository names
     githubToken?: string;
 }
 
@@ -58,6 +59,7 @@ export async function POST(request: NextRequest) {
         const result = await runAnalysis(username, {
             githubToken: body.githubToken,
             openaiApiKey,
+            selectedRepos: body.selectedRepos, // Only analyze these repos if provided
             verbose: process.env.NODE_ENV === 'development',
         });
 

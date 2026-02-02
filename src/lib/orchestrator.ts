@@ -34,6 +34,7 @@ export interface AnalysisProgress {
 export interface AnalysisOptions {
     githubToken?: string;
     openaiApiKey?: string;
+    selectedRepos?: string[]; // Only analyze these repos if provided
     maxRepos?: number;
     onProgress?: (progress: AnalysisProgress) => void;
     verbose?: boolean;
@@ -68,6 +69,7 @@ export async function runAnalysis(
     const {
         githubToken,
         openaiApiKey,
+        selectedRepos,
         maxRepos = 20,
         onProgress,
         verbose = false,
@@ -120,7 +122,14 @@ export async function runAnalysis(
 
         // Step 2: Fetch repositories
         const repositories = await github.getRepositories(username);
-        const reposToAnalyze = repositories.slice(0, maxRepos);
+
+        // Filter to user-selected repos if provided
+        let reposToAnalyze: ProcessedRepository[];
+        if (selectedRepos && selectedRepos.length > 0) {
+            reposToAnalyze = repositories.filter(r => selectedRepos.includes(r.name));
+        } else {
+            reposToAnalyze = repositories.slice(0, maxRepos);
+        }
 
         fetchEndTime = new Date();
 
