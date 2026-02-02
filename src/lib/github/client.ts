@@ -84,11 +84,20 @@ export class GitHubClient {
     private onProgress?: (message: string) => void;
 
     constructor(token?: string, onProgress?: (message: string) => void) {
+        // Use provided token or fall back to environment variable
+        const authToken = token || process.env.GITHUB_TOKEN;
+
         this.octokit = new Octokit({
-            auth: token,
+            auth: authToken,
             userAgent: 'github-to-resume/1.0',
         });
         this.onProgress = onProgress;
+
+        if (authToken) {
+            this.log('Using authenticated GitHub client');
+        } else {
+            this.log('Warning: No GitHub token provided. Rate limits will be restricted to 60 requests/hour.');
+        }
     }
 
     private log(message: string) {
