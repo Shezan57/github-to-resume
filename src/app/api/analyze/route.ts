@@ -16,6 +16,8 @@ interface AnalyzeRequest {
     username: string;
     selectedRepos?: string[]; // User-selected repository names
     githubToken?: string;
+    targetRole?: string;  // e.g., 'software-engineer', 'data-scientist'
+    customRole?: string;  // Custom role entered by user
 }
 
 export async function POST(request: NextRequest) {
@@ -60,6 +62,8 @@ export async function POST(request: NextRequest) {
             githubToken: body.githubToken,
             openaiApiKey,
             selectedRepos: body.selectedRepos, // Only analyze these repos if provided
+            targetRole: body.targetRole,       // Role targeting for ATS optimization
+            customRole: body.customRole,       // Custom role if not using predefined
             verbose: process.env.NODE_ENV === 'development',
         });
 

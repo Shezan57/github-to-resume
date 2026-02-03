@@ -38,6 +38,8 @@ export interface AnalysisOptions {
     maxRepos?: number;
     onProgress?: (progress: AnalysisProgress) => void;
     verbose?: boolean;
+    targetRole?: string;  // e.g., 'software-engineer', 'data-scientist'
+    customRole?: string;  // Custom role entered by user
 }
 
 export interface AnalysisResult {
@@ -73,6 +75,8 @@ export async function runAnalysis(
         maxRepos = 20,
         onProgress,
         verbose = false,
+        targetRole,
+        customRole,
     } = options;
 
     const startTime = new Date();
@@ -214,6 +218,8 @@ export async function runAnalysis(
         const resumeResult = await generateResume(user, analyses, {
             apiKey: openaiApiKey,
             verbose,
+            targetRole,
+            customRole,
             onProgress: (msg) => {
                 if (verbose) console.log(`[Generator] ${msg}`);
             },

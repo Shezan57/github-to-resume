@@ -318,3 +318,215 @@ export function generateBulletEnhancePrompt(
 
     return prompt;
 }
+
+/**
+ * Role-specific keywords for ATS optimization
+ */
+export const ROLE_KEYWORDS: Record<string, string[]> = {
+    'software-engineer': [
+        'software development', 'algorithms', 'data structures', 'system design',
+        'code review', 'debugging', 'testing', 'agile', 'scrum', 'version control',
+        'performance optimization', 'scalability', 'clean code'
+    ],
+    'frontend-developer': [
+        'React', 'Vue', 'Angular', 'JavaScript', 'TypeScript', 'HTML', 'CSS',
+        'responsive design', 'UI/UX', 'accessibility', 'web performance',
+        'component architecture', 'state management', 'REST API integration'
+    ],
+    'backend-developer': [
+        'API design', 'RESTful services', 'databases', 'SQL', 'NoSQL',
+        'microservices', 'server-side development', 'authentication',
+        'authorization', 'caching', 'message queues', 'scalability'
+    ],
+    'fullstack-developer': [
+        'full stack development', 'frontend', 'backend', 'databases',
+        'deployment', 'cloud services', 'DevOps', 'API development',
+        'end-to-end development', 'system integration'
+    ],
+    'devops-engineer': [
+        'CI/CD', 'Docker', 'Kubernetes', 'AWS', 'Azure', 'GCP',
+        'infrastructure as code', 'Terraform', 'monitoring', 'logging',
+        'automation', 'shell scripting', 'security'
+    ],
+    'mobile-developer': [
+        'iOS', 'Android', 'React Native', 'Flutter', 'Swift', 'Kotlin',
+        'mobile UI/UX', 'app store deployment', 'push notifications',
+        'offline storage', 'performance optimization'
+    ],
+    'data-scientist': [
+        'machine learning', 'statistics', 'Python', 'R', 'data analysis',
+        'data visualization', 'predictive modeling', 'feature engineering',
+        'A/B testing', 'experimental design', 'SQL'
+    ],
+    'data-analyst': [
+        'SQL', 'Excel', 'data visualization', 'Tableau', 'Power BI',
+        'reporting', 'business intelligence', 'analytics', 'dashboards',
+        'data cleaning', 'statistical analysis'
+    ],
+    'ml-engineer': [
+        'deep learning', 'TensorFlow', 'PyTorch', 'model deployment',
+        'MLOps', 'neural networks', 'NLP', 'computer vision',
+        'model optimization', 'feature engineering', 'data pipelines'
+    ],
+    'ai-researcher': [
+        'research', 'publications', 'NLP', 'computer vision',
+        'reinforcement learning', 'transformers', 'novel architectures',
+        'experimentation', 'benchmarking', 'state-of-the-art'
+    ],
+    'phd-application': [
+        'research experience', 'publications', 'thesis', 'academic',
+        'teaching assistant', 'grants', 'collaboration', 'methodology',
+        'literature review', 'experimental design'
+    ],
+    'research-fellowship': [
+        'research', 'publications', 'grants', 'collaboration',
+        'presentations', 'peer review', 'academic writing',
+        'interdisciplinary', 'impact'
+    ],
+    'scholarship': [
+        'academic excellence', 'leadership', 'community service',
+        'extracurricular activities', 'achievements', 'GPA',
+        'awards', 'volunteer work', 'initiative'
+    ],
+    'technical-pm': [
+        'product strategy', 'roadmap', 'stakeholder management',
+        'agile methodology', 'technical leadership', 'requirements gathering',
+        'cross-functional collaboration', 'metrics', 'OKRs'
+    ],
+    'engineering-manager': [
+        'team leadership', 'mentoring', 'project management',
+        'agile', 'technical vision', 'hiring', 'performance reviews',
+        'sprint planning', 'resource allocation', 'technical decisions'
+    ],
+};
+
+/**
+ * Generate role-aware system prompt for resume generation
+ */
+export function generateRoleAwareSystemPrompt(
+    targetRole?: string,
+    customRole?: string
+): string {
+    const basePrompt = `You are an expert resume writer specializing in creating ATS-optimized resumes for tech professionals.`;
+
+    const roleTitle = customRole || targetRole || 'software engineering positions';
+
+    let roleGuidelines = `
+Create a professional, compelling resume targeting ${roleTitle} positions.
+
+Guidelines:
+- Use strong action verbs (Developed, Implemented, Architected, Optimized, Led)
+- Quantify achievements when possible (users, performance, reduction %)
+- Focus on impact, not just responsibilities
+- Keep bullet points concise (1-2 lines each)
+- Prioritize projects most relevant to ${roleTitle}
+- Use industry-standard terminology for ${roleTitle}`;
+
+    // Add role-specific keywords if available
+    if (targetRole && ROLE_KEYWORDS[targetRole]) {
+        const keywords = ROLE_KEYWORDS[targetRole];
+        roleGuidelines += `
+
+ATS Keywords to incorporate naturally:
+${keywords.join(', ')}`;
+    }
+
+    roleGuidelines += `
+
+Output ONLY valid JSON. No markdown, no explanation.`;
+
+    return basePrompt + roleGuidelines;
+}
+
+/**
+ * Generate role-targeted resume synthesis prompt
+ */
+export function generateRoleTargetedResumeSynthesisPrompt(
+    user: ProcessedUser,
+    analyses: RepositoryAnalysis[],
+    targetRole?: string,
+    customRole?: string
+): string {
+    const parts: string[] = [];
+
+    const roleTitle = customRole || targetRole || 'Software Engineer';
+
+    parts.push(`## Target Position: ${roleTitle}`);
+    parts.push('');
+    parts.push('## GitHub Profile Information');
+    parts.push(`Name: ${user.name || user.username}`);
+    if (user.bio) parts.push(`Bio: ${user.bio}`);
+    if (user.location) parts.push(`Location: ${user.location}`);
+    if (user.company) parts.push(`Company: ${user.company}`);
+    if (user.email) parts.push(`Email: ${user.email}`);
+    if (user.blog) parts.push(`Website: ${user.blog}`);
+    if (user.twitter) parts.push(`Twitter: @${user.twitter}`);
+    parts.push(`GitHub: github.com/${user.username}`);
+    parts.push(`Public Repositories: ${user.publicRepos}`);
+    parts.push(`Followers: ${user.followers}`);
+    parts.push('');
+
+    parts.push('## Analyzed Projects');
+    parts.push('');
+
+    for (const analysis of analyses) {
+        parts.push(`### ${analysis.projectName}`);
+        parts.push(`Type: ${analysis.projectType} | Complexity: ${analysis.complexityScore}/10`);
+        parts.push(`Summary: ${analysis.detailedSummary}`);
+        parts.push(`Technologies: ${analysis.technologies.join(', ')}`);
+        parts.push(`Skills: ${analysis.skillsDemonstrated.join(', ')}`);
+        parts.push('Achievements:');
+        for (const achievement of analysis.achievements) {
+            parts.push(`- ${achievement}`);
+        }
+        parts.push('Resume Bullets:');
+        for (const bullet of analysis.resumeBulletPoints) {
+            parts.push(`- ${bullet}`);
+        }
+        parts.push('');
+    }
+
+    parts.push('---');
+    parts.push('');
+    parts.push(`Generate a professional resume optimized for "${roleTitle}" positions in this exact JSON format:
+{
+  "header": {
+    "name": "${user.name || user.username}",
+    "title": "${roleTitle}",
+    "email": "${user.email || ''}",
+    "location": "${user.location || ''}",
+    "github": "github.com/${user.username}",
+    "linkedin": "",
+    "portfolio": "${user.blog || ''}"
+  },
+  "summary": "3-4 sentence professional summary tailored for ${roleTitle} positions, highlighting relevant strengths",
+  "skills": {
+    "languages": ["Programming languages most relevant to ${roleTitle}"],
+    "frameworks": ["Frameworks and libraries relevant to ${roleTitle}"],
+    "databases": ["Databases if relevant"],
+    "tools": ["Development tools, CI/CD, cloud relevant to ${roleTitle}"],
+    "concepts": ["Software concepts relevant to ${roleTitle}"]
+  },
+  "projects": [
+    {
+      "name": "Project Name",
+      "url": "github.com/user/repo",
+      "description": "Brief project description emphasizing relevance to ${roleTitle}",
+      "technologies": ["tech1", "tech2"],
+      "bullets": [
+        "Action-oriented bullet point highlighting skills for ${roleTitle}",
+        "Another relevant achievement"
+      ]
+    }
+  ]
+}
+
+IMPORTANT:
+- Prioritize projects most relevant to ${roleTitle}
+- Include TOP 6-8 most impressive/relevant projects
+- Tailor bullet points to emphasize ${roleTitle} skills
+- Use terminology and keywords common in ${roleTitle} job descriptions
+- Make summary specifically compelling for ${roleTitle} recruiters`);
+
+    return parts.join('\n');
+}

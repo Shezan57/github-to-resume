@@ -534,6 +534,133 @@ export class GitHubClient {
 
         return map[ext.toLowerCase()] || 'unknown';
     }
+
+    /**
+     * Fetch only the README file for a repository (fast path)
+     * Returns { hasReadme, content, filename }
+     */
+    async getReadmeOnly(owner: string, repo: string): Promise<{
+        hasReadme: boolean;
+        content: string | null;
+        filename: string | null;
+    }> {
+        await this.checkRateLimit();
+
+        try {
+            // Try to get README directly using GitHub's README API
+            const response = await this.octokit.repos.getReadme({
+                owner,
+                repo,
+            });
+
+            this.updateRateLimit(response.headers as Record<string, string>);
+
+            const data = response.data as { content?: string; encoding?: string; name?: string };
+
+            if (data.content && data.encoding === 'base64') {
+                const content = Buffer.from(data.content, 'base64').toString('utf-8');
+                return {
+                    hasReadme: true,
+                    content,
+                    filename: data.name || 'README.md',
+                };
+            }
+
+            return { hasReadme: false, content: null, filename: null };
+        } catch (error) {
+            // 404 means no README exists
+            const err = error as { status?: number };
+            if (err.status === 404) {
+                return { hasReadme: false, content: null, filename: null };
+            }
+            console.error(`Failed to fetch README for ${repo}:`, error);
+            return { hasReadme: false, content: null, filename: null };
+        }
+    }
+
+    /**
+     * Get repository structure for README generation
+     * Returns file tree and basic repo info needed to generate a README
+     */
+    async getRepoStructure(owner: string, repo: string): Promise<{
+        tree: string[];
+        languages: string[];
+        hasPackageJson: boolean;
+        hasRequirements: boolean;
+        hasDockerfile: boolean;
+        mainFiles: string[];
+    }> {
+        await this.checkRateLimit();
+
+        const result = {
+            tree: [] as string[],
+            languages: [] as string[],
+            hasPackageJson: false,
+            hasRequirements: false,
+            hasDockerfile: false,
+            mainFiles: [] as string[],
+        };
+
+        try {
+            // Get repository tree
+            const treeResponse = await this.octokit.git.getTree({
+                owner,
+                repo,
+                tree_sha: 'HEAD',
+                recursive: 'true',
+            });
+
+            this.updateRateLimit(treeResponse.headers as Record<string, string>);
+
+            const files = treeResponse.data.tree
+                .filter(item => item.type === 'blob')
+                .map(item => item.path || '')
+                .filter(path => !IGNORE_PATTERNS.some(dir => path.includes(dir)));
+
+            // Limit to top 50 files for structure
+            result.tree = files.slice(0, 50);
+
+            // Check for key files
+            result.hasPackageJson = files.some(f => f === 'package.json');
+            result.hasRequirements = files.some(f =>
+                f === 'requirements.txt' || f === 'Pipfile' || f === 'pyproject.toml'
+            );
+            result.hasDockerfile = files.some(f =>
+                f.toLowerCase() === 'dockerfile' || f.includes('docker-compose')
+            );
+
+            // Find main/entry files
+            result.mainFiles = files.filter(f => {
+                const name = f.split('/').pop()?.toLowerCase() || '';
+                return name.includes('main') ||
+                    name.includes('index') ||
+                    name.includes('app') ||
+                    name === 'server.ts' ||
+                    name === 'server.js';
+            }).slice(0, 5);
+
+            // Detect languages from extensions
+            const extensions = new Set<string>();
+            files.forEach(f => {
+                const ext = f.split('.').pop()?.toLowerCase();
+                if (ext) extensions.add(ext);
+            });
+
+            if (extensions.has('ts') || extensions.has('tsx')) result.languages.push('TypeScript');
+            if (extensions.has('js') || extensions.has('jsx')) result.languages.push('JavaScript');
+            if (extensions.has('py')) result.languages.push('Python');
+            if (extensions.has('go')) result.languages.push('Go');
+            if (extensions.has('rs')) result.languages.push('Rust');
+            if (extensions.has('java')) result.languages.push('Java');
+            if (extensions.has('rb')) result.languages.push('Ruby');
+            if (extensions.has('php')) result.languages.push('PHP');
+
+        } catch (error) {
+            console.error(`Failed to get repo structure for ${repo}:`, error);
+        }
+
+        return result;
+    }
 }
 
 // Singleton for server-side use

@@ -11,6 +11,8 @@ import {
     BULLET_ENHANCE_SYSTEM_PROMPT,
     generateResumeSynthesisPrompt,
     generateBulletEnhancePrompt,
+    generateRoleAwareSystemPrompt,
+    generateRoleTargetedResumeSynthesisPrompt,
 } from './prompts';
 import {
     countTokens,
@@ -37,6 +39,8 @@ interface GeneratorOptions {
     model?: ModelName;
     verbose?: boolean;
     onProgress?: (message: string) => void;
+    targetRole?: string;  // e.g., 'software-engineer', 'data-scientist'
+    customRole?: string;  // Custom role entered by user
 }
 
 interface GenerationResult {
@@ -57,6 +61,8 @@ export async function generateResume(
         model = LLM_SYNTHESIS_MODEL as ModelName,
         verbose = false,
         onProgress,
+        targetRole,
+        customRole,
     } = options;
 
     const openai = getOpenAIClient(apiKey);
@@ -75,15 +81,24 @@ export async function generateResume(
         (a, b) => b.complexityScore - a.complexityScore
     );
 
-    // Generate the synthesis prompt
-    const userPrompt = generateResumeSynthesisPrompt(user, sortedAnalyses);
-    const promptTokens = countTokens(userPrompt);
+    // Generate the synthesis prompt - use role-targeted if role is specified
+    const hasRoleTarget = targetRole || customRole;
+    const systemPrompt = hasRoleTarget
+        ? generateRoleAwareSystemPrompt(targetRole, customRole)
+        : RESUME_GENERATION_SYSTEM_PROMPT;
+    const userPrompt = hasRoleTarget
+        ? generateRoleTargetedResumeSynthesisPrompt(user, sortedAnalyses, targetRole, customRole)
+        : generateResumeSynthesisPrompt(user, sortedAnalyses);
 
+    const promptTokens = countTokens(userPrompt);
     log(`Synthesis prompt tokens: ${promptTokens}`);
+    if (hasRoleTarget) {
+        log(`Targeting role: ${customRole || targetRole}`);
+    }
 
     // Truncate if needed
     const availableTokens = getAvailableTokens(model);
-    const maxPromptTokens = availableTokens - countTokens(RESUME_GENERATION_SYSTEM_PROMPT) - 2000;
+    const maxPromptTokens = availableTokens - countTokens(systemPrompt) - 2000;
 
     const finalPrompt = promptTokens > maxPromptTokens
         ? truncateToTokenLimit(userPrompt, maxPromptTokens)
@@ -94,7 +109,7 @@ export async function generateResume(
         () => openai.chat.completions.create({
             model,
             messages: [
-                { role: 'system', content: RESUME_GENERATION_SYSTEM_PROMPT },
+                { role: 'system', content: systemPrompt },
                 { role: 'user', content: finalPrompt },
             ],
             temperature: 0.4,

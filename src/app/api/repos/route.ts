@@ -29,6 +29,7 @@ interface RepoInfo {
     isFork: boolean;
     isArchived: boolean;
     score: number; // Our relevance score
+    hasReadme?: boolean; // Will be checked on demand by frontend
 }
 
 export async function GET(request: NextRequest) {
