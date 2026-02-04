@@ -1,7 +1,8 @@
 /**
  * Resume Editor Page
  * 
- * Full-featured resume editor with live preview, inline editing, and export
+ * Full-featured resume editor with live preview, inline editing, 
+ * ATS scoring, keyword suggestions, and custom sections
  */
 
 'use client';
@@ -11,18 +12,24 @@ import { useParams, useRouter } from 'next/navigation';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { ModernTemplate } from '@/components/resume';
+import { ResumeTemplate } from '@/components/resume/resume-template';
+import { SectionManager } from '@/components/resume/section-manager';
+import { KeywordSuggestions } from '@/components/resume/keyword-suggestions';
+import { ATSScoreModal } from '@/components/resume/ats-score-modal';
 import {
     ArrowLeft,
     Download,
     FileText,
     Sparkles,
-    Save,
     Loader2,
     Check,
-    Palette
+    Palette,
+    Target,
+    ChevronLeft,
+    ChevronRight,
 } from 'lucide-react';
-import type { Resume, ResumeTemplate } from '@/types';
+import type { Resume, ResumeTemplate as ResumeTemplateType, CustomSection } from '@/types';
+import { DEFAULT_SECTION_ORDER } from '@/types/resume';
 import { getResume, saveResume } from '@/lib/storage';
 import { deepClone } from '@/lib/utils';
 
@@ -38,6 +45,8 @@ export default function ResumeEditorPage() {
     const [isSaving, setIsSaving] = useState(false);
     const [lastSaved, setLastSaved] = useState<Date | null>(null);
     const [isExporting, setIsExporting] = useState(false);
+    const [showATSModal, setShowATSModal] = useState(false);
+    const [sidebarCollapsed, setSidebarCollapsed] = useState(false);
 
     // Load resume from localStorage
     useEffect(() => {
@@ -46,9 +55,16 @@ export default function ResumeEditorPage() {
         if (generatedResume) {
             const parsed = JSON.parse(generatedResume) as Resume;
             if (parsed.id === resumeId) {
-                setResume(parsed);
+                // Ensure new fields exist
+                const resumeWithDefaults = {
+                    ...parsed,
+                    customSections: parsed.customSections || [],
+                    sectionOrder: parsed.sectionOrder || DEFAULT_SECTION_ORDER,
+                    sectionVisibility: parsed.sectionVisibility || { header: true, summary: true, skills: true, experience: true, projects: true, education: true, certifications: true },
+                };
+                setResume(resumeWithDefaults);
                 // Save to permanent storage
-                saveResume(parsed);
+                saveResume(resumeWithDefaults);
                 // Clear the temporary storage
                 localStorage.removeItem('generated_resume');
                 return;
@@ -58,7 +74,14 @@ export default function ResumeEditorPage() {
         // Otherwise load from permanent storage
         const saved = getResume(resumeId);
         if (saved) {
-            setResume(saved);
+            // Ensure new fields exist
+            const resumeWithDefaults = {
+                ...saved,
+                customSections: saved.customSections || [],
+                sectionOrder: saved.sectionOrder || DEFAULT_SECTION_ORDER,
+                sectionVisibility: saved.sectionVisibility || { header: true, summary: true, skills: true, experience: true, projects: true, education: true, certifications: true },
+            };
+            setResume(resumeWithDefaults);
         }
     }, [resumeId]);
 
@@ -80,6 +103,48 @@ export default function ResumeEditorPage() {
             }
 
             current[parts[parts.length - 1]] = value;
+            return updated;
+        });
+    }, []);
+
+    // Add custom section
+    const handleAddSection = useCallback((section: CustomSection) => {
+        setResume(prev => {
+            if (!prev) return prev;
+            const updated = deepClone(prev);
+            updated.customSections = [...(updated.customSections || []), section];
+            updated.sectionOrder = [...(updated.sectionOrder || DEFAULT_SECTION_ORDER), section.id];
+            return updated;
+        });
+    }, []);
+
+    // Remove custom section
+    const handleRemoveSection = useCallback((sectionId: string) => {
+        setResume(prev => {
+            if (!prev) return prev;
+            const updated = deepClone(prev);
+            updated.customSections = (updated.customSections || []).filter(s => s.id !== sectionId);
+            updated.sectionOrder = (updated.sectionOrder || []).filter(id => id !== sectionId);
+            return updated;
+        });
+    }, []);
+
+    // Reorder section
+    const handleReorderSection = useCallback((sectionId: string, direction: 'up' | 'down') => {
+        setResume(prev => {
+            if (!prev) return prev;
+            const updated = deepClone(prev);
+            const order = [...(updated.sectionOrder || DEFAULT_SECTION_ORDER)];
+            const currentIndex = order.indexOf(sectionId);
+
+            if (currentIndex === -1) return prev;
+
+            const newIndex = direction === 'up' ? currentIndex - 1 : currentIndex + 1;
+            if (newIndex < 0 || newIndex >= order.length) return prev;
+
+            // Swap
+            [order[currentIndex], order[newIndex]] = [order[newIndex], order[currentIndex]];
+            updated.sectionOrder = order;
             return updated;
         });
     }, []);
@@ -145,6 +210,15 @@ export default function ResumeEditorPage() {
                     </div>
 
                     <div className="flex items-center gap-2">
+                        {/* ATS Check Button */}
+                        <Button
+                            variant="outline"
+                            onClick={() => setShowATSModal(true)}
+                        >
+                            <Target className="h-4 w-4" />
+                            <span className="hidden sm:inline ml-1">ATS Score</span>
+                        </Button>
+
                         {/* View Mode Toggle */}
                         <div className="flex rounded-lg overflow-hidden border border-[hsl(var(--border))]">
                             <Button
@@ -172,7 +246,7 @@ export default function ResumeEditorPage() {
                             isLoading={isExporting}
                         >
                             <Download className="h-4 w-4" />
-                            Export PDF
+                            <span className="hidden sm:inline ml-1">Export PDF</span>
                         </Button>
                     </div>
                 </div>
@@ -183,85 +257,113 @@ export default function ResumeEditorPage() {
                 <div className="flex flex-col lg:flex-row gap-8">
                     {/* Editor Panel - hidden in preview mode */}
                     {viewMode === 'edit' && (
-                        <div className="lg:w-96 no-print space-y-4">
-                            {/* Quick Stats */}
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <FileText className="h-5 w-5 text-[hsl(var(--primary))]" />
-                                        Resume Stats
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="space-y-2 text-sm">
-                                    <div className="flex justify-between">
-                                        <span className="text-[hsl(var(--muted-foreground))]">Projects</span>
-                                        <Badge variant="secondary">{resume.projects.length}</Badge>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-[hsl(var(--muted-foreground))]">Experience</span>
-                                        <Badge variant="secondary">{resume.experience.length}</Badge>
-                                    </div>
-                                    <div className="flex justify-between">
-                                        <span className="text-[hsl(var(--muted-foreground))]">Skills</span>
-                                        <Badge variant="secondary">
-                                            {resume.skills.languages.length +
-                                                resume.skills.frameworks.length +
-                                                resume.skills.tools.length}
-                                        </Badge>
-                                    </div>
-                                </CardContent>
-                            </Card>
+                        <div className={`no-print transition-all duration-300 ${sidebarCollapsed ? 'lg:w-12' : 'lg:w-96'}`}>
+                            {/* Collapse Toggle */}
+                            <Button
+                                variant="ghost"
+                                size="sm"
+                                className="hidden lg:flex mb-2 w-full justify-center"
+                                onClick={() => setSidebarCollapsed(!sidebarCollapsed)}
+                            >
+                                {sidebarCollapsed ? <ChevronRight className="h-4 w-4" /> : <ChevronLeft className="h-4 w-4" />}
+                                {!sidebarCollapsed && <span className="ml-1">Collapse</span>}
+                            </Button>
 
-                            {/* Pro Tips */}
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <Sparkles className="h-5 w-5 text-[hsl(var(--primary))]" />
-                                        Tips
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent className="text-sm text-[hsl(var(--muted-foreground))] space-y-2">
-                                    <p>• Click on any text in the resume to edit it directly</p>
-                                    <p>• Keep bullet points action-oriented and quantified</p>
-                                    <p>• Aim for 3-5 bullet points per project</p>
-                                    <p>• Use "Export PDF" to save for applications</p>
-                                </CardContent>
-                            </Card>
+                            {!sidebarCollapsed && (
+                                <div className="space-y-4">
+                                    {/* Quick Stats */}
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-lg flex items-center gap-2">
+                                                <FileText className="h-5 w-5 text-[hsl(var(--primary))]" />
+                                                Resume Stats
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="space-y-2 text-sm">
+                                            <div className="flex justify-between">
+                                                <span className="text-[hsl(var(--muted-foreground))]">Projects</span>
+                                                <Badge variant="secondary">{resume.projects.length}</Badge>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[hsl(var(--muted-foreground))]">Experience</span>
+                                                <Badge variant="secondary">{resume.experience.length}</Badge>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[hsl(var(--muted-foreground))]">Skills</span>
+                                                <Badge variant="secondary">
+                                                    {resume.skills.languages.length +
+                                                        resume.skills.frameworks.length +
+                                                        resume.skills.tools.length}
+                                                </Badge>
+                                            </div>
+                                            <div className="flex justify-between">
+                                                <span className="text-[hsl(var(--muted-foreground))]">Custom Sections</span>
+                                                <Badge variant="secondary">{resume.customSections?.length || 0}</Badge>
+                                            </div>
+                                        </CardContent>
+                                    </Card>
 
-                            {/* Template Selection */}
-                            <Card>
-                                <CardHeader className="pb-2">
-                                    <CardTitle className="text-lg flex items-center gap-2">
-                                        <Palette className="h-5 w-5 text-[hsl(var(--primary))]" />
-                                        Template
-                                    </CardTitle>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-2 gap-2">
-                                        {(['modern', 'classic', 'minimal', 'creative'] as ResumeTemplate[]).map((template) => (
-                                            <Button
-                                                key={template}
-                                                variant={resume.template === template ? 'default' : 'outline'}
-                                                size="sm"
-                                                onClick={() => handleUpdate('template', template)}
-                                                className="capitalize"
-                                            >
-                                                {template}
-                                            </Button>
-                                        ))}
-                                    </div>
-                                    <p className="text-xs text-[hsl(var(--muted-foreground))] mt-2">
-                                        * Only Modern template is fully implemented
-                                    </p>
-                                </CardContent>
-                            </Card>
+                                    {/* Keyword Suggestions */}
+                                    <KeywordSuggestions resume={resume} />
+
+                                    {/* Section Manager */}
+                                    <SectionManager
+                                        resume={resume}
+                                        onUpdate={handleUpdate}
+                                        onAddSection={handleAddSection}
+                                        onRemoveSection={handleRemoveSection}
+                                        onReorderSection={handleReorderSection}
+                                    />
+
+                                    {/* Template Selection */}
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-lg flex items-center gap-2">
+                                                <Palette className="h-5 w-5 text-[hsl(var(--primary))]" />
+                                                Template
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent>
+                                            <div className="grid grid-cols-2 gap-2">
+                                                {(['modern', 'classic', 'minimal', 'creative'] as ResumeTemplateType[]).map((template) => (
+                                                    <Button
+                                                        key={template}
+                                                        variant={resume.template === template ? 'default' : 'outline'}
+                                                        size="sm"
+                                                        onClick={() => handleUpdate('template', template)}
+                                                        className="capitalize"
+                                                    >
+                                                        {template}
+                                                    </Button>
+                                                ))}
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+
+                                    {/* Pro Tips */}
+                                    <Card>
+                                        <CardHeader className="pb-2">
+                                            <CardTitle className="text-lg flex items-center gap-2">
+                                                <Sparkles className="h-5 w-5 text-[hsl(var(--primary))]" />
+                                                Tips
+                                            </CardTitle>
+                                        </CardHeader>
+                                        <CardContent className="text-sm text-[hsl(var(--muted-foreground))] space-y-2">
+                                            <p>• Click any text in the resume to edit</p>
+                                            <p>• Use action verbs and quantify results</p>
+                                            <p>• Check ATS Score before applying</p>
+                                            <p>• Add custom sections for unique content</p>
+                                        </CardContent>
+                                    </Card>
+                                </div>
+                            )}
                         </div>
                     )}
 
                     {/* Resume Preview */}
                     <div className="flex-1 flex justify-center">
                         <div className="transform-gpu origin-top" style={{ transform: 'scale(0.9)' }}>
-                            <ModernTemplate
+                            <ResumeTemplate
                                 resume={resume}
                                 isEditing={viewMode === 'edit'}
                                 onUpdate={handleUpdate}
@@ -271,23 +373,31 @@ export default function ResumeEditorPage() {
                 </div>
             </div>
 
+            {/* ATS Score Modal */}
+            {showATSModal && (
+                <ATSScoreModal
+                    resume={resume}
+                    onClose={() => setShowATSModal(false)}
+                />
+            )}
+
             {/* Print Styles */}
             <style jsx global>{`
-        @media print {
-          body {
-            background: white !important;
-          }
-          .no-print {
-            display: none !important;
-          }
-          .resume-page {
-            margin: 0 !important;
-            padding: 15mm !important;
-            box-shadow: none !important;
-            transform: none !important;
-          }
-        }
-      `}</style>
+                @media print {
+                    body {
+                        background: white !important;
+                    }
+                    .no-print {
+                        display: none !important;
+                    }
+                    .resume-page {
+                        margin: 0 !important;
+                        padding: 15mm !important;
+                        box-shadow: none !important;
+                        transform: none !important;
+                    }
+                }
+            `}</style>
         </div>
     );
 }

@@ -40,7 +40,10 @@
     "@types/react-dom": "^19",
     "eslint": "^9",
     "eslint-config-next": "16.1.6",
+    "https-proxy-agent": "^7.0.6",
+    "node-fetch": "^3.3.2",
     "tailwindcss": "^4",
-    "typescript": "^5"
+    "typescript": "^5",
+    "undici": "^6.23.0"
   }
 }

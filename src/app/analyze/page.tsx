@@ -769,7 +769,7 @@ function AnalyzeContent() {
                 {/* Completed State */}
                 {state.step === 'completed' && state.resume && (
                     <>
-                        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-8">
+                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 mb-8">
                             <Card>
                                 <CardContent className="pt-4">
                                     <div className="flex items-center gap-3">
@@ -787,18 +787,7 @@ function AnalyzeContent() {
                                         <Clock className="h-8 w-8 text-[hsl(var(--primary))]" />
                                         <div>
                                             <p className="text-2xl font-bold">{state.stats?.timing.durationSeconds}s</p>
-                                            <p className="text-sm text-[hsl(var(--muted-foreground))]">Total Time</p>
-                                        </div>
-                                    </div>
-                                </CardContent>
-                            </Card>
-                            <Card>
-                                <CardContent className="pt-4">
-                                    <div className="flex items-center gap-3">
-                                        <Coins className="h-8 w-8 text-[hsl(var(--primary))]" />
-                                        <div>
-                                            <p className="text-2xl font-bold">${state.stats?.tokenUsage.estimatedCost}</p>
-                                            <p className="text-sm text-[hsl(var(--muted-foreground))]">AI Cost</p>
+                                            <p className="text-sm text-[hsl(var(--muted-foreground))]">Generation Time</p>
                                         </div>
                                     </div>
                                 </CardContent>

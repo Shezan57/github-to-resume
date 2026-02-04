@@ -103,6 +103,17 @@ export function createEmptyResume(userId: string = 'anonymous'): Resume {
         projects: [],
         education: [],
         certifications: [],
+        customSections: [],
+        sectionOrder: ['header', 'summary', 'skills', 'experience', 'projects', 'education', 'certifications'],
+        sectionVisibility: {
+            header: true,
+            summary: true,
+            skills: true,
+            experience: true,
+            projects: true,
+            education: true,
+            certifications: true,
+        },
         metadata: {
             createdAt: now,
             updatedAt: now,

@@ -60,6 +60,38 @@ export interface CertificationItem {
   url?: string;
 }
 
+// Custom section for user-defined content (like Europass)
+export interface CustomSectionItem {
+  id: string;
+  title: string;
+  description?: string;
+  date?: string;
+  url?: string;
+}
+
+export interface CustomSection {
+  id: string;
+  title: string;
+  icon?: string; // emoji or icon name
+  type: 'list' | 'text' | 'bullets' | 'items';
+  content: string | string[] | CustomSectionItem[];
+  visible: boolean;
+}
+
+// Predefined custom section templates
+export const CUSTOM_SECTION_TEMPLATES = [
+  { id: 'languages', title: 'Languages', icon: '🌐', type: 'list' as const },
+  { id: 'publications', title: 'Publications', icon: '📄', type: 'items' as const },
+  { id: 'awards', title: 'Awards & Honors', icon: '🏆', type: 'items' as const },
+  { id: 'volunteer', title: 'Volunteer Experience', icon: '🤝', type: 'items' as const },
+  { id: 'interests', title: 'Interests', icon: '⭐', type: 'list' as const },
+  { id: 'references', title: 'References', icon: '👤', type: 'text' as const },
+  { id: 'courses', title: 'Relevant Courses', icon: '📚', type: 'list' as const },
+  { id: 'patents', title: 'Patents', icon: '💡', type: 'items' as const },
+  { id: 'speaking', title: 'Speaking & Presentations', icon: '🎤', type: 'items' as const },
+  { id: 'custom', title: 'Custom Section', icon: '📝', type: 'text' as const },
+];
+
 export interface ResumeMetadata {
   createdAt: string;
   updatedAt: string;
@@ -81,6 +113,9 @@ export interface Resume {
   projects: ProjectItem[];
   education: EducationItem[];
   certifications?: CertificationItem[];
+  customSections: CustomSection[];
+  sectionOrder: string[]; // Controls display order of all sections
+  sectionVisibility: Record<string, boolean>; // Controls which sections are visible
   metadata: ResumeMetadata;
 }
 
@@ -88,11 +123,36 @@ export interface Resume {
 export type ResumeTemplate = 'modern' | 'classic' | 'minimal' | 'creative';
 
 // Resume section types for editing
-export type ResumeSectionType = 
-  | 'header' 
-  | 'summary' 
-  | 'skills' 
-  | 'experience' 
-  | 'projects' 
-  | 'education' 
-  | 'certifications';
+export type ResumeSectionType =
+  | 'header'
+  | 'summary'
+  | 'skills'
+  | 'experience'
+  | 'projects'
+  | 'education'
+  | 'certifications'
+  | 'custom';
+
+// Default section order
+export const DEFAULT_SECTION_ORDER = [
+  'header',
+  'summary',
+  'skills',
+  'experience',
+  'projects',
+  'education',
+  'certifications',
+];
+
+// Default section visibility (all visible by default)
+export const DEFAULT_SECTION_VISIBILITY: Record<string, boolean> = {
+  header: true,
+  summary: true,
+  skills: true,
+  experience: true,
+  projects: true,
+  education: true,
+  certifications: true,
+};
+
+

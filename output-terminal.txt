@@ -1,0 +1,369 @@
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing Medical-VQA-Agent... (3/4)
+[Analyzer] Analyzing repository: Medical-VQA-Agent
+  [Analyzer] Analyzing repository: Medical-VQA-Agent
+[Analyzer] Estimated content tokens: 3325
+  [Analyzer] Estimated content tokens: 3325
+[Analyzer] Analysis prompt tokens: 3337
+  [Analyzer] Analysis prompt tokens: 3337
+Failed to analyze Medical-VQA-Agent: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:167:32)
+    at async POST (src\app\api\analyze\route.ts:59:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing github-to-resume... (4/4)
+[Analyzer] Analyzing repository: github-to-resume
+  [Analyzer] Analyzing repository: github-to-resume
+[Analyzer] Estimated content tokens: 2202
+  [Analyzer] Estimated content tokens: 2202
+[Analyzer] Analysis prompt tokens: 2251
+  [Analyzer] Analysis prompt tokens: 2251
+Failed to analyze github-to-resume: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:167:32)
+    at async POST (src\app\api\analyze\route.ts:59:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[generating_resume] Generating your resume... (4/4)
+[Generator] Generating resume from analyzed projects...
+[Generator] Generating resume from analyzed projects...
+[Generator] Synthesis prompt tokens: 628
+[Generator] Synthesis prompt tokens: 628
+[failed] 403 Country, region, or territory not supported (0/0)
+Analysis error: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async generateResume (src\lib\llm\generator.ts:93:22)
+    at async runAnalysis (src\lib\orchestrator.ts:214:30)
+    at async POST (src\app\api\analyze\route.ts:59:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+ POST /api/analyze 500 in 82s (compile: 557ms, render: 81s)
+Terminate batch job (Y/N)? 
+y
+PS D:\SHEZAN\AI\github-to-resume> 
+ *  History restored 
+
+PS D:\SHEZAN\AI\github-to-resume> npm run dev
+
+> github-to-resume@0.1.0 dev
+> next dev
+
+▲ Next.js 16.1.6 (Turbopack)
+- Local:         http://localhost:3000
+- Network:       http://172.16.0.2:3000
+- Environments: .env.local
+
+✓ Starting...
+✓ Ready in 1137ms
+ GET / 200 in 1734ms (compile: 1312ms, render: 421ms)
+ GET /analyze?username=Shezan57 200 in 327ms (compile: 291ms, render: 36ms)
+ GET /api/repos?username=Shezan57 200 in 4.5s (compile: 121ms, render: 4.4s)
+ GET /api/repos?username=Shezan57 200 in 2.5s (compile: 3ms, render: 2.5s)
+[GitHub] Using authenticated GitHub client
+ POST /api/check-readme 200 in 9.3s (compile: 470ms, render: 8.8s)
+[GitHub] Using authenticated GitHub client
+[fetching_profile] Fetching profile for Shezan57... (0/1)
+[fetching_repos] Fetching repositories... (0/1)
+[GitHub] Fetching repositories...
+[GitHub] Found 37 repositories
+[GitHub] Selected 20 repositories for analysis
+[analyzing_repos] Analyzing 8 repositories... (0/8)
+[analyzing_repos] Analyzing scrpv... (1/8)
+[Analyzer] Analyzing repository: scrpv
+  [Analyzer] Analyzing repository: scrpv
+[Analyzer] Estimated content tokens: 812
+  [Analyzer] Estimated content tokens: 812
+[Analyzer] Analysis prompt tokens: 958
+  [Analyzer] Analysis prompt tokens: 958
+Failed to analyze scrpv: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing Machine-Unlearning... (2/8)
+[Analyzer] Analyzing repository: Machine-Unlearning
+  [Analyzer] Analyzing repository: Machine-Unlearning
+[Analyzer] Estimated content tokens: 1840
+  [Analyzer] Estimated content tokens: 1840
+[Analyzer] Analysis prompt tokens: 1705
+  [Analyzer] Analysis prompt tokens: 1705
+Failed to analyze Machine-Unlearning: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing Medical-VQA-Agent... (3/8)
+[Analyzer] Analyzing repository: Medical-VQA-Agent
+  [Analyzer] Analyzing repository: Medical-VQA-Agent
+[Analyzer] Estimated content tokens: 3325
+  [Analyzer] Estimated content tokens: 3325
+[Analyzer] Analysis prompt tokens: 3337
+  [Analyzer] Analysis prompt tokens: 3337
+Failed to analyze Medical-VQA-Agent: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing github-to-resume... (4/8)
+[Analyzer] Analyzing repository: github-to-resume
+  [Analyzer] Analyzing repository: github-to-resume
+[Analyzer] Estimated content tokens: 2202
+  [Analyzer] Estimated content tokens: 2202
+[Analyzer] Analysis prompt tokens: 2251
+  [Analyzer] Analysis prompt tokens: 2251
+Failed to analyze github-to-resume: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing MentalSupport-V2... (5/8)
+[Analyzer] Analyzing repository: MentalSupport-V2
+  [Analyzer] Analyzing repository: MentalSupport-V2
+[Analyzer] Estimated content tokens: 1984
+  [Analyzer] Estimated content tokens: 1984
+[Analyzer] Analysis prompt tokens: 1906
+  [Analyzer] Analysis prompt tokens: 1906
+Failed to analyze MentalSupport-V2: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing Video-to-SOP-Generator... (6/8)
+[Analyzer] Analyzing repository: Video-to-SOP-Generator
+  [Analyzer] Analyzing repository: Video-to-SOP-Generator
+[Analyzer] Estimated content tokens: 3410
+  [Analyzer] Estimated content tokens: 3410
+[Analyzer] Analysis prompt tokens: 3462
+  [Analyzer] Analysis prompt tokens: 3462
+Failed to analyze Video-to-SOP-Generator: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing AI-Researcher-Agent... (7/8)
+[Analyzer] Analyzing repository: AI-Researcher-Agent
+  [Analyzer] Analyzing repository: AI-Researcher-Agent
+[Analyzer] Estimated content tokens: 511
+  [Analyzer] Estimated content tokens: 511
+[Analyzer] Analysis prompt tokens: 413
+  [Analyzer] Analysis prompt tokens: 413
+Failed to analyze AI-Researcher-Agent: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[analyzing_repos] Analyzing MLOps-Insurance-Prediction-Full-Project... (8/8)
+[Analyzer] Analyzing repository: MLOps-Insurance-Prediction-Full-Project
+  [Analyzer] Analyzing repository: MLOps-Insurance-Prediction-Full-Project
+[Analyzer] Estimated content tokens: 4030
+  [Analyzer] Estimated content tokens: 4030
+[Analyzer] Analysis prompt tokens: 4064
+  [Analyzer] Analysis prompt tokens: 4064
+Failed to analyze MLOps-Insurance-Prediction-Full-Project: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async analyzeRepository (src\lib\llm\analyzer.ts:120:22)
+    at async runAnalysis (src\lib\orchestrator.ts:171:32)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+[generating_resume] Generating your resume... (8/8)
+[Generator] Generating resume from analyzed projects...
+[Generator] Generating resume from analyzed projects...
+[Generator] Synthesis prompt tokens: 877
+[Generator] Synthesis prompt tokens: 877
+[failed] 403 Country, region, or territory not supported (0/0)
+Analysis error: Error: 403 Country, region, or territory not supported
+    at async retry (src\lib\utils.ts:52:20)
+    at async generateResume (src\lib\llm\generator.ts:108:22)
+    at async runAnalysis (src\lib\orchestrator.ts:218:30)
+    at async POST (src\app\api\analyze\route.ts:61:24)
+  50 |     for (let attempt = 0; attempt <= maxRetries; attempt++) {
+  51 |         try {
+> 52 |             return await fn();
+     |                    ^
+  53 |         } catch (error) {
+  54 |             lastError = error;
+  55 | {
+  status: 403,
+  headers: [HeadersList],
+  requestID: null,
+  error: [Object],
+  code: 'unsupported_country_region_territory',
+  param: null,
+  type: 'request_forbidden'
+}
+ POST /api/analyze 500 in 2.7min (compile: 149ms, render: 2.7min)
+ HEAD / 200 in 130ms (compile: 10ms, render: 121ms)
