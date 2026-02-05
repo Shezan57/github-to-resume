@@ -165,7 +165,7 @@ export function MinimalTemplate({ resume, isEditing = false, onUpdate }: ResumeT
                     <section key="skills" className="mb-4">
                         <h2 className="text-xs font-medium uppercase tracking-widest text-gray-500 mb-2">Skills</h2>
                         <p className="text-sm text-gray-700">
-                            {[...resume.skills.languages, ...resume.skills.frameworks, ...resume.skills.tools].join(' · ')}
+                            {(resume.skills.categories || []).flatMap(cat => cat.items).join(' · ')}
                         </p>
                     </section>
                 );

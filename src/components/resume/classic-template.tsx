@@ -213,9 +213,9 @@ export function ClassicTemplate({ resume, isEditing = false, onUpdate }: ResumeT
                     <section key="skills" className="mb-5">
                         <h2 className="text-base font-bold uppercase text-gray-900 border-b-2 border-gray-900 pb-1 mb-3">Technical Skills</h2>
                         <div className="text-sm space-y-1">
-                            {resume.skills.languages.length > 0 && <p><strong>Languages:</strong> {resume.skills.languages.join(', ')}</p>}
-                            {resume.skills.frameworks.length > 0 && <p><strong>Frameworks:</strong> {resume.skills.frameworks.join(', ')}</p>}
-                            {resume.skills.tools.length > 0 && <p><strong>Tools:</strong> {resume.skills.tools.join(', ')}</p>}
+                            {(resume.skills.categories || []).map(cat => (
+                                cat.items.length > 0 && <p key={cat.id}><strong>{cat.name}:</strong> {cat.items.join(', ')}</p>
+                            ))}
                         </div>
                     </section>
                 );

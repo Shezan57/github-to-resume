@@ -24,6 +24,10 @@ export const metadata: Metadata = {
   },
 };
 
+import { AuthProvider } from "@/contexts/auth-context";
+import { UsageProvider } from "@/contexts/usage-context";
+import { RegistrationWall } from "@/components/auth/registration-wall";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -34,7 +38,12 @@ export default function RootLayout({
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        <AuthProvider>
+          <UsageProvider>
+            {children}
+            <RegistrationWall />
+          </UsageProvider>
+        </AuthProvider>
       </body>
     </html>
   );

@@ -93,11 +93,12 @@ export function createEmptyResume(userId: string = 'anonymous'): Resume {
         },
         summary: '',
         skills: {
-            languages: [],
-            frameworks: [],
-            databases: [],
-            tools: [],
-            concepts: [],
+            categories: [
+                { id: 'languages', name: 'Languages', items: [] },
+                { id: 'frameworks', name: 'Frameworks', items: [] },
+                { id: 'databases', name: 'Databases', items: [] },
+                { id: 'tools', name: 'Tools', items: [] },
+            ],
         },
         experience: [],
         projects: [],

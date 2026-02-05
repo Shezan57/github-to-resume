@@ -35,10 +35,13 @@ import { deepClone } from '@/lib/utils';
 
 type ViewMode = 'edit' | 'preview';
 
+import { useAuth } from '@/contexts/auth-context';
+
 export default function ResumeEditorPage() {
     const params = useParams();
     const router = useRouter();
     const resumeId = params.id as string;
+    const { user } = useAuth(); // Get user tier
 
     const [resume, setResume] = useState<Resume | null>(null);
     const [viewMode, setViewMode] = useState<ViewMode>('edit');
@@ -172,6 +175,21 @@ export default function ResumeEditorPage() {
         }, 100);
     }, []);
 
+    // Apply AI fix
+    const handleApplyFix = useCallback((location: string, value: string) => {
+        // Normalize location to dot notation
+        let path = location.replace(/[:]/g, '.').replace(/\[(\d+)\]/g, '.$1');
+
+        // Fix common singular/plural mismatches from LLM
+        path = path.replace(/^project\./, 'projects.');
+        path = path.replace(/\.bullet\./, '.bullets.');
+
+        // Handle "project.0.description" -> "projects.0.description"
+        if (path.startsWith('project.')) path = path.replace('project.', 'projects.');
+
+        handleUpdate(path, value);
+    }, [handleUpdate]);
+
     if (!resume) {
         return (
             <div className="min-h-screen flex items-center justify-center">
@@ -291,9 +309,7 @@ export default function ResumeEditorPage() {
                                             <div className="flex justify-between">
                                                 <span className="text-[hsl(var(--muted-foreground))]">Skills</span>
                                                 <Badge variant="secondary">
-                                                    {resume.skills.languages.length +
-                                                        resume.skills.frameworks.length +
-                                                        resume.skills.tools.length}
+                                                    {(resume.skills.categories || []).reduce((sum, cat) => sum + cat.items.length, 0)}
                                                 </Badge>
                                             </div>
                                             <div className="flex justify-between">
@@ -378,6 +394,8 @@ export default function ResumeEditorPage() {
                 <ATSScoreModal
                     resume={resume}
                     onClose={() => setShowATSModal(false)}
+                    onApplyFix={handleApplyFix}
+                    tier={user?.tier === 'premium' ? 'openai' : 'groq'}
                 />
             )}
 

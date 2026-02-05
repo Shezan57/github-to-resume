@@ -239,21 +239,9 @@ function parseResumeResponse(
             },
             summary: parsed.summary || defaultResume.summary,
             skills: {
-                languages: Array.isArray(parsed.skills?.languages)
-                    ? parsed.skills.languages
-                    : defaultResume.skills.languages,
-                frameworks: Array.isArray(parsed.skills?.frameworks)
-                    ? parsed.skills.frameworks
-                    : defaultResume.skills.frameworks,
-                databases: Array.isArray(parsed.skills?.databases)
-                    ? parsed.skills.databases
-                    : defaultResume.skills.databases,
-                tools: Array.isArray(parsed.skills?.tools)
-                    ? parsed.skills.tools
-                    : defaultResume.skills.tools,
-                concepts: Array.isArray(parsed.skills?.concepts)
-                    ? parsed.skills.concepts
-                    : defaultResume.skills.concepts,
+                categories: Array.isArray(parsed.skills?.categories)
+                    ? parsed.skills.categories
+                    : defaultResume.skills.categories,
             },
             projects: Array.isArray(parsed.projects)
                 ? parsed.projects.map((p: Partial<ProjectItem>) => ({
@@ -353,14 +341,12 @@ function extractSkills(analyses: RepositoryAnalysis[]): ResumeSkills {
     const allItems = [...allTech, ...allSkills];
 
     return {
-        languages: categorize(allItems, languages),
-        frameworks: categorize(allItems, frameworks),
-        databases: categorize(allItems, databases),
-        tools: categorize(allItems, tools),
-        concepts: unique(allSkills.filter(s =>
-            !languages.some(l => s.toLowerCase().includes(l.toLowerCase())) &&
-            !frameworks.some(f => s.toLowerCase().includes(f.toLowerCase()))
-        )).slice(0, 8),
+        categories: [
+            { id: 'languages', name: 'Languages', items: categorize(allItems, languages) },
+            { id: 'frameworks', name: 'Frameworks', items: categorize(allItems, frameworks) },
+            { id: 'databases', name: 'Databases', items: categorize(allItems, databases) },
+            { id: 'tools', name: 'Tools', items: categorize(allItems, tools) },
+        ],
     };
 }
 

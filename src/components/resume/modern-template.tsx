@@ -109,13 +109,56 @@ export function ModernTemplate({ resume, isEditing = false, onUpdate }: ResumeTe
     };
 
     // Add skill to category
-    const addSkill = (category: keyof typeof resume.skills) => {
-        handleEdit(`skills.${category}`, [...resume.skills[category], 'New Skill']);
+    const addSkill = (categoryId: string) => {
+        const newCategories = (resume.skills.categories || []).map(cat =>
+            cat.id === categoryId
+                ? { ...cat, items: [...cat.items, 'New Skill'] }
+                : cat
+        );
+        handleEdit('skills.categories', newCategories);
     };
 
-    // Remove skill
-    const removeSkill = (category: keyof typeof resume.skills, index: number) => {
-        handleEdit(`skills.${category}`, resume.skills[category].filter((_, i) => i !== index));
+    // Remove skill from category
+    const removeSkill = (categoryId: string, index: number) => {
+        const newCategories = (resume.skills.categories || []).map(cat =>
+            cat.id === categoryId
+                ? { ...cat, items: cat.items.filter((_, i) => i !== index) }
+                : cat
+        );
+        handleEdit('skills.categories', newCategories);
+    };
+
+    // Add new skill category
+    const addSkillCategory = () => {
+        const newCategory = {
+            id: generateId(),
+            name: 'New Category',
+            items: [],
+        };
+        handleEdit('skills.categories', [...(resume.skills.categories || []), newCategory]);
+    };
+
+    // Remove skill category
+    const removeSkillCategory = (categoryId: string) => {
+        handleEdit('skills.categories', (resume.skills.categories || []).filter(cat => cat.id !== categoryId));
+    };
+
+    // Update skill category name
+    const updateCategoryName = (categoryId: string, newName: string) => {
+        const newCategories = (resume.skills.categories || []).map(cat =>
+            cat.id === categoryId ? { ...cat, name: newName } : cat
+        );
+        handleEdit('skills.categories', newCategories);
+    };
+
+    // Update skill in category
+    const updateSkill = (categoryId: string, skillIndex: number, newValue: string) => {
+        const newCategories = (resume.skills.categories || []).map(cat =>
+            cat.id === categoryId
+                ? { ...cat, items: cat.items.map((item, i) => i === skillIndex ? newValue : item) }
+                : cat
+        );
+        handleEdit('skills.categories', newCategories);
     };
 
     // Get section order and visibility
@@ -456,99 +499,29 @@ export function ModernTemplate({ resume, isEditing = false, onUpdate }: ResumeTe
                             Technical Skills
                         </h2>
                         <div className="space-y-2 text-sm">
-                            {/* Languages */}
-                            <div className="flex flex-wrap items-center gap-1">
-                                <span className="font-semibold text-gray-700 mr-1">Languages:</span>
-                                {resume.skills.languages.map((skill, i) => (
-                                    <span key={i} className="group relative px-2 py-0.5 rounded bg-gray-100">
-                                        <span
-                                            contentEditable={isEditing}
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const newSkills = [...resume.skills.languages];
-                                                newSkills[i] = e.currentTarget.textContent || '';
-                                                handleEdit('skills.languages', newSkills);
-                                            }}
-                                        >
-                                            {skill}
-                                        </span>
-                                        {isEditing && (
-                                            <button
-                                                className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                                                onClick={() => removeSkill('languages', i)}
-                                            >
-                                                <X className="w-2 h-2" />
-                                            </button>
-                                        )}
-                                    </span>
-                                ))}
-                                {isEditing && (
-                                    <button
-                                        className="px-2 py-0.5 rounded border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50"
-                                        onClick={() => addSkill('languages')}
+                            {(resume.skills.categories || []).map((category) => (
+                                <div key={category.id} className="group/cat flex flex-wrap items-center gap-1">
+                                    <span
+                                        className="font-semibold text-gray-700 mr-1"
+                                        contentEditable={isEditing}
+                                        suppressContentEditableWarning
+                                        onBlur={(e) => updateCategoryName(category.id, e.currentTarget.textContent || 'Category')}
                                     >
-                                        +
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Frameworks */}
-                            <div className="flex flex-wrap items-center gap-1">
-                                <span className="font-semibold text-gray-700 mr-1">Frameworks:</span>
-                                {resume.skills.frameworks.map((skill, i) => (
-                                    <span key={i} className="group relative px-2 py-0.5 rounded bg-gray-100">
-                                        <span
-                                            contentEditable={isEditing}
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const newSkills = [...resume.skills.frameworks];
-                                                newSkills[i] = e.currentTarget.textContent || '';
-                                                handleEdit('skills.frameworks', newSkills);
-                                            }}
-                                        >
-                                            {skill}
-                                        </span>
-                                        {isEditing && (
-                                            <button
-                                                className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                                                onClick={() => removeSkill('frameworks', i)}
-                                            >
-                                                <X className="w-2 h-2" />
-                                            </button>
-                                        )}
+                                        {category.name}:
                                     </span>
-                                ))}
-                                {isEditing && (
-                                    <button
-                                        className="px-2 py-0.5 rounded border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50"
-                                        onClick={() => addSkill('frameworks')}
-                                    >
-                                        +
-                                    </button>
-                                )}
-                            </div>
-
-                            {/* Databases */}
-                            {(resume.skills.databases.length > 0 || isEditing) && (
-                                <div className="flex flex-wrap items-center gap-1">
-                                    <span className="font-semibold text-gray-700 mr-1">Databases:</span>
-                                    {resume.skills.databases.map((skill, i) => (
+                                    {category.items.map((skill, i) => (
                                         <span key={i} className="group relative px-2 py-0.5 rounded bg-gray-100">
                                             <span
                                                 contentEditable={isEditing}
                                                 suppressContentEditableWarning
-                                                onBlur={(e) => {
-                                                    const newSkills = [...resume.skills.databases];
-                                                    newSkills[i] = e.currentTarget.textContent || '';
-                                                    handleEdit('skills.databases', newSkills);
-                                                }}
+                                                onBlur={(e) => updateSkill(category.id, i, e.currentTarget.textContent || '')}
                                             >
                                                 {skill}
                                             </span>
                                             {isEditing && (
                                                 <button
                                                     className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                                                    onClick={() => removeSkill('databases', i)}
+                                                    onClick={() => removeSkill(category.id, i)}
                                                 >
                                                     <X className="w-2 h-2" />
                                                 </button>
@@ -556,51 +529,31 @@ export function ModernTemplate({ resume, isEditing = false, onUpdate }: ResumeTe
                                         </span>
                                     ))}
                                     {isEditing && (
-                                        <button
-                                            className="px-2 py-0.5 rounded border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50"
-                                            onClick={() => addSkill('databases')}
-                                        >
-                                            +
-                                        </button>
+                                        <>
+                                            <button
+                                                className="px-2 py-0.5 rounded border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50"
+                                                onClick={() => addSkill(category.id)}
+                                            >
+                                                +
+                                            </button>
+                                            <button
+                                                className="ml-1 text-red-400 opacity-0 group-hover/cat:opacity-100 hover:text-red-500"
+                                                onClick={() => removeSkillCategory(category.id)}
+                                            >
+                                                <Trash2 className="w-3 h-3" />
+                                            </button>
+                                        </>
                                     )}
                                 </div>
+                            ))}
+                            {isEditing && (
+                                <button
+                                    className="w-full py-2 border-2 border-dashed border-gray-300 rounded text-gray-500 text-sm hover:bg-gray-50 flex items-center justify-center gap-2"
+                                    onClick={addSkillCategory}
+                                >
+                                    <Plus className="h-4 w-4" /> Add Skill Category
+                                </button>
                             )}
-
-                            {/* Tools */}
-                            <div className="flex flex-wrap items-center gap-1">
-                                <span className="font-semibold text-gray-700 mr-1">Tools:</span>
-                                {resume.skills.tools.map((skill, i) => (
-                                    <span key={i} className="group relative px-2 py-0.5 rounded bg-gray-100">
-                                        <span
-                                            contentEditable={isEditing}
-                                            suppressContentEditableWarning
-                                            onBlur={(e) => {
-                                                const newSkills = [...resume.skills.tools];
-                                                newSkills[i] = e.currentTarget.textContent || '';
-                                                handleEdit('skills.tools', newSkills);
-                                            }}
-                                        >
-                                            {skill}
-                                        </span>
-                                        {isEditing && (
-                                            <button
-                                                className="absolute -top-1 -right-1 w-3 h-3 bg-red-500 text-white rounded-full text-xs opacity-0 group-hover:opacity-100 flex items-center justify-center"
-                                                onClick={() => removeSkill('tools', i)}
-                                            >
-                                                <X className="w-2 h-2" />
-                                            </button>
-                                        )}
-                                    </span>
-                                ))}
-                                {isEditing && (
-                                    <button
-                                        className="px-2 py-0.5 rounded border border-dashed border-gray-300 text-gray-500 text-xs hover:bg-gray-50"
-                                        onClick={() => addSkill('tools')}
-                                    >
-                                        +
-                                    </button>
-                                )}
-                            </div>
                         </div>
                     </section>
                 );

@@ -12,13 +12,24 @@ export interface ResumeHeader {
   avatar?: string;
 }
 
-export interface ResumeSkills {
-  languages: string[];
-  frameworks: string[];
-  databases: string[];
-  tools: string[];
-  concepts: string[];
+// Skill category for dynamic skills
+export interface SkillCategory {
+  id: string;
+  name: string;  // e.g., "Programming Languages", "Cloud Services"
+  items: string[];
 }
+
+export interface ResumeSkills {
+  categories: SkillCategory[];
+}
+
+// Default skill categories (for backwards compatibility)
+export const DEFAULT_SKILL_CATEGORIES: SkillCategory[] = [
+  { id: 'languages', name: 'Languages', items: [] },
+  { id: 'frameworks', name: 'Frameworks', items: [] },
+  { id: 'databases', name: 'Databases', items: [] },
+  { id: 'tools', name: 'Tools', items: [] },
+];
 
 export interface ExperienceItem {
   id: string;

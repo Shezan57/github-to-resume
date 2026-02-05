@@ -208,11 +208,13 @@ function analyzeFormatting(resume: Resume, suggestions: ATSSuggestion[]): number
         });
     }
 
-    if (resume.skills.languages.length < 3) {
+    // Check for skills count
+    const totalSkills = (resume.skills.categories || []).reduce((sum, cat) => sum + cat.items.length, 0);
+    if (totalSkills < 5) {
         score -= 10;
         suggestions.push({
             category: 'important',
-            message: 'Add more programming languages to skills',
+            message: 'Add more skills to your resume',
         });
     }
 

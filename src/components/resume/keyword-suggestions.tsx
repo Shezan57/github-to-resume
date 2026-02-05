@@ -45,9 +45,7 @@ export function KeywordSuggestions({ resume, targetRole }: KeywordSuggestionsPro
             resume.summary,
             ...resume.projects.flatMap(p => [p.description, ...p.bullets]),
             ...resume.experience.flatMap(e => e.bullets),
-            ...resume.skills.languages,
-            ...resume.skills.frameworks,
-            ...resume.skills.tools,
+            ...(resume.skills.categories || []).flatMap(cat => cat.items),
         ];
         return parts.join(' ').toLowerCase();
     }, [resume]);

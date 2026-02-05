@@ -201,7 +201,7 @@ export function CreativeTemplate({ resume, isEditing = false, onUpdate }: Resume
                     <section key="skills" className="mb-5">
                         <h2 className="text-sm font-bold text-transparent bg-clip-text bg-gradient-to-r from-pink-500 to-orange-500 uppercase tracking-wider mb-3">Skills</h2>
                         <div className="flex flex-wrap gap-2">
-                            {[...resume.skills.languages, ...resume.skills.frameworks, ...resume.skills.tools].map((skill, i) => (
+                            {(resume.skills.categories || []).flatMap(cat => cat.items).map((skill, i) => (
                                 <span key={i} className="px-3 py-1 text-xs rounded-full bg-gradient-to-r from-pink-100 to-orange-100 text-pink-700 font-medium">
                                     {skill}
                                 </span>

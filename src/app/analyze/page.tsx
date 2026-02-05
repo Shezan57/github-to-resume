@@ -42,7 +42,10 @@ import {
 } from 'lucide-react';
 import { RoleSelector, JOB_ROLES, type JobRole } from '@/components/resume/role-selector';
 import { ATSScoreModal } from '@/components/resume/ats-score-modal';
+import { deepClone } from '@/lib/utils';
 import type { Resume } from '@/types';
+import { useUsage } from '@/contexts/usage-context';
+import { PricingBanner } from '@/components/pricing/pricing-banner';
 
 interface RepoInfo {
     id: number;
@@ -99,6 +102,7 @@ function AnalyzeContent() {
     const searchParams = useSearchParams();
     const router = useRouter();
     const username = searchParams.get('username');
+    const { user } = useAuth(); // Get auth user for tier info
 
     const [state, setState] = useState<PageState>({
         step: 'loading',
@@ -282,9 +286,16 @@ function AnalyzeContent() {
         setState(prev => ({ ...prev, generatedReadme: undefined }));
     };
 
+    const { incrementGeneration, hasReachedGenerationLimit, setShowRegistrationWall } = useUsage();
+
     // Run analysis with selected repos
     const runAnalysis = useCallback(async () => {
         if (!username || state.selectedRepos.size === 0) return;
+
+        if (hasReachedGenerationLimit) {
+            setShowRegistrationWall(true);
+            return;
+        }
 
         setState(prev => ({
             ...prev,
@@ -333,6 +344,9 @@ function AnalyzeContent() {
                 throw new Error(data.error || 'Analysis failed');
             }
 
+            // Increment generation count on success
+            incrementGeneration();
+
             setState(prev => ({
                 ...prev,
                 step: 'completed',
@@ -354,7 +368,7 @@ function AnalyzeContent() {
                 error: error instanceof Error ? error.message : 'Unknown error occurred',
             }));
         }
-    }, [username, state.selectedRepos]);
+    }, [username, state.selectedRepos, hasReachedGenerationLimit, incrementGeneration, setShowRegistrationWall]);
 
     // No username
     if (!username) {
@@ -380,6 +394,46 @@ function AnalyzeContent() {
     const reposWithoutReadme = state.readmeStatus
         ? Array.from(state.selectedRepos).filter(name => !state.readmeStatus?.get(name))
         : [];
+
+    // Apply AI fix
+    const handleApplyFix = useCallback((location: string, value: string) => {
+        setState(prev => {
+            if (!prev.resume) return prev;
+
+            const updatedResume = deepClone(prev.resume);
+
+            // Normalize location to dot notation
+            let path = location.replace(/[:]/g, '.').replace(/\[(\d+)\]/g, '.$1');
+
+            // Fix common singular/plural mismatches from LLM
+            path = path.replace(/^project\./, 'projects.');
+            path = path.replace(/\.bullet\./, '.bullets.');
+
+            // Handle "project.0.description" -> "projects.0.description"
+            if (path.startsWith('project.')) path = path.replace('project.', 'projects.');
+
+            // Update the value at the path
+            const parts = path.split('.');
+            let current: any = updatedResume;
+
+            for (let i = 0; i < parts.length - 1; i++) {
+                const key = parts[i];
+                if (current[key] === undefined) {
+                    current[key] = {}; // Should probably not happen for existing paths
+                }
+                current = current[key];
+            }
+
+            if (current) {
+                current[parts[parts.length - 1]] = value;
+            }
+
+            return {
+                ...prev,
+                resume: updatedResume
+            };
+        });
+    }, []);
 
     return (
         <div className="min-h-screen p-4 md:p-8">
@@ -408,6 +462,9 @@ function AnalyzeContent() {
                         </div>
                     </div>
                 </div>
+
+                {/* Pricing Banner */}
+                <PricingBanner />
 
                 {/* Step Indicator */}
                 {(state.step === 'select' || state.step === 'checking' || state.step === 'review') && (
@@ -835,13 +892,11 @@ function AnalyzeContent() {
                                     <div>
                                         <h3 className="font-semibold mb-2">Skills</h3>
                                         <div className="flex flex-wrap gap-2">
-                                            {[
-                                                ...state.resume.skills.languages,
-                                                ...state.resume.skills.frameworks,
-                                                ...state.resume.skills.tools,
-                                            ].slice(0, 15).map((skill, i) => (
-                                                <Badge key={i} variant="secondary">{skill}</Badge>
-                                            ))}
+                                            {(state.resume.skills.categories || [])
+                                                .flatMap(cat => cat.items)
+                                                .slice(0, 15).map((skill, i) => (
+                                                    <Badge key={i} variant="secondary">{skill}</Badge>
+                                                ))}
                                         </div>
                                     </div>
                                     <div>
@@ -880,13 +935,24 @@ function AnalyzeContent() {
                     resume={state.resume}
                     targetRole={state.customRole || state.selectedRole?.id}
                     onClose={() => setState(prev => ({ ...prev, showATSModal: false }))}
+                    onApplyFix={handleApplyFix}
+                    tier={user?.tier === 'premium' ? 'openai' : 'groq'}
                 />
             )}
         </div>
     );
 }
 
+import { useAuth } from '@/contexts/auth-context';
+
 export default function AnalyzePage() {
+    const { user } = useAuth();
+
+    // Inject user tier into state if possible, or just pass it down. 
+    // Actually AnalyzeContent is internal. Let's just wrap it or let it use the hook directly?
+    // AnalyzeContent is defined inside the same file but as a component.
+    // Ideally AnalyzeContent should use useAuth hook to get the tier.
+
     return (
         <Suspense fallback={
             <div className="min-h-screen flex items-center justify-center">

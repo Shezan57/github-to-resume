@@ -12,6 +12,7 @@ import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Github, Sparkles, ArrowRight } from 'lucide-react';
 import { parseGitHubUrl, isValidGitHubUsername } from '@/lib/utils';
+import { useUsage } from '@/contexts/usage-context';
 
 interface GitHubInputProps {
     onAnalyze?: (username: string) => void;
@@ -22,6 +23,7 @@ export function GitHubInput({ onAnalyze }: GitHubInputProps) {
     const [error, setError] = useState('');
     const [isLoading, setIsLoading] = useState(false);
     const router = useRouter();
+    const { hasReachedGenerationLimit, setShowRegistrationWall } = useUsage();
 
     const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
@@ -45,6 +47,11 @@ export function GitHubInput({ onAnalyze }: GitHubInputProps) {
         if (onAnalyze) {
             onAnalyze(username);
         } else {
+            // Check limits before navigating
+            if (hasReachedGenerationLimit) {
+                setShowRegistrationWall(true);
+                return;
+            }
             // Navigate to analyze page
             router.push(`/analyze?username=${encodeURIComponent(username)}`);
         }
@@ -56,9 +63,9 @@ export function GitHubInput({ onAnalyze }: GitHubInputProps) {
                 {/* Glow effect behind input */}
                 <div className="absolute -inset-1 rounded-2xl gradient-bg opacity-30 blur-xl" />
 
-                <div className="relative glass rounded-2xl p-2 flex flex-col sm:flex-row gap-2">
+                <div className="flex flex-col sm:flex-row gap-3">
                     <div className="relative flex-1">
-                        <Github className="absolute left-4 top-1/2 -translate-y-1/2 h-5 w-5 text-[hsl(var(--muted-foreground))]" />
+                        <Github className="absolute left-3 top-1/2 -translate-y-1/2 h-5 w-5 text-muted-foreground" />
                         <Input
                             type="text"
                             placeholder="Enter GitHub username or profile URL"
@@ -67,7 +74,7 @@ export function GitHubInput({ onAnalyze }: GitHubInputProps) {
                                 setInput(e.target.value);
                                 setError('');
                             }}
-                            className="pl-12 h-14 text-base border-0 bg-transparent focus-visible:ring-0 focus-visible:ring-offset-0"
+                            className="pl-10 h-12 text-base bg-background shadow-sm"
                             aria-label="GitHub username or URL"
                         />
                     </div>
@@ -77,11 +84,10 @@ export function GitHubInput({ onAnalyze }: GitHubInputProps) {
                         variant="gradient"
                         size="lg"
                         isLoading={isLoading}
-                        className="h-14 px-8 text-base font-semibold"
+                        className="h-12 px-8 text-base font-semibold shadow-sm sm:w-auto w-full"
                     >
-                        <Sparkles className="h-5 w-5" />
+                        <Sparkles className="h-4 w-4 mr-2" />
                         Generate Resume
-                        <ArrowRight className="h-5 w-5" />
                     </Button>
                 </div>
             </div>
